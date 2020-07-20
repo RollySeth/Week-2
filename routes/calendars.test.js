@@ -3,11 +3,11 @@ const request = require("supertest");
 
 const server = require("../server");
 const testUtils = require('../test-utils');
+let UserDAO = require('../daos/calendars');
 
 describe("/calendars", () => {
   beforeAll(testUtils.connectDB);
   afterAll(testUtils.stopDB);
-
   afterEach(testUtils.clearDB)
 
   describe("GET /:id", () => {
@@ -15,6 +15,19 @@ describe("/calendars", () => {
       const res = await request(server).get("/calendars/id1");
       expect(res.statusCode).toEqual(404);
     });
+    
+    
+  });
+
+  describe('GET /', () => {
+    it('should return a 404 when coulndnot find the calendar', async () => {
+      const res = await request(server).get("/");
+      expect(res.statusCode).toEqual(404);    
+    });
+    // it('should return null when could not find the calendar', async () => {
+    //   const res = await UsaerDAO.getAll("/");
+    //   expect(res.statusCode).toEqual(null);    
+    // });
   });
 
   describe('POST /', () => {
@@ -67,6 +80,8 @@ describe("/calendars", () => {
       const storedCalendars = res.body;
       expect(storedCalendars).toMatchObject([calendar1, calendar2]);
     });
+    
+    
   });
 
   describe('PUT /:id after POST /', () => {
@@ -88,7 +103,16 @@ describe("/calendars", () => {
         _id: calendar1._id 
       });
     });
+
+    it('should return 400 error if no update text is provided', async()=>{
+      const res = await request(server)
+      .put("/calendars/" + calendar1._id)
+      .send({  });
+    expect(res.statusCode).toEqual(400);    
+    }
+    );
   });
+
 
   describe('DELETE /:id after POST /', () => {
     let calendar1;
@@ -102,6 +126,11 @@ describe("/calendars", () => {
       expect(res.statusCode).toEqual(200);    
       const storedCalendarResponse = (await request(server).get("/calendars/" + calendar1._id));
       expect(storedCalendarResponse.status).toEqual(404);
+    });
+
+    it('should give 500 error if unable to delete', async () => {
+      const res = await request(server).delete("/calendars/" + calendar1);
+      expect(res.statusCode).toEqual(500);    
     });
   });
 });
